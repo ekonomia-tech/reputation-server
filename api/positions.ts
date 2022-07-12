@@ -3,7 +3,7 @@ import { request } from 'graphql-request';
 import { AccountReputation, AccountsPositions, Event, Position } from "../common/types";
 import { positionsQuery } from './queries';
 import { SUBGRAPH_URL, ROWS_TO_PULL } from "../common/constants";
-import { writeFile } from 'fs/promises';
+import { BigNumber } from 'ethers';
 
 // NOTICE:
 // AAVE-V2 UNI-V2 positions are disregarded due to issues in amountUSD conversion.
@@ -21,7 +21,7 @@ export async function getPositionsData(positions: Position[] = []): Promise<any>
             }
         });
         positions = [... positions, ...data.positions];
-        if (positions.length > ROWS_TO_PULL) {
+        if (positions.length > 10000) {
             return positions;
         }
         
@@ -46,7 +46,7 @@ export function calculateScores(accounts: AccountsPositions) : AccountReputation
         .map((accountEntry: any, index: number) => {
             let accountId: string = accountEntry[0];
             let accountPositions : Position[] = accountEntry[1];
-            let totalExp: number = calculatePositions(accountPositions);
+            let totalExp: BigNumber = calculatePositions(accountPositions);
             let accountReputation: AccountReputation = {
                 index,
                 account: accountId,
@@ -56,22 +56,22 @@ export function calculateScores(accounts: AccountsPositions) : AccountReputation
         });
 }
 
-export function calculatePositions(positions: Position[]) : number {
-    let totalExp: number = 0;
+export function calculatePositions(positions: Position[]) : BigNumber {
+    let totalExp: BigNumber = BigNumber.from(0);
     positions.forEach((position: Position) => {
-        totalExp += calculatePositionExp(position);
+        totalExp = totalExp.add(calculatePositionExp(position));
     })
     return totalExp;
 }
 
-export function calculatePositionExp(position: Position) : number {
-    if(position.isLiquidated || position.events.length < 2) return 0;
+export function calculatePositionExp(position: Position) : BigNumber {
+    if(position.isLiquidated || position.events.length < 2) return BigNumber.from(0);
 
     let events: Event[] = position.events;
 
     if (events.find( e => e.market.asset.symbol == "UNI-V2"))  {
         console.log("found uniswap")
-        return 0;
+        return BigNumber.from(0);
     }
     events = events.sort((a: Event, b: Event) => a.blockTime - b.blockTime)
     let accumulatives: Event[] = []; 
@@ -105,7 +105,7 @@ export function calculatePositionExp(position: Position) : number {
         };
     };
 
-    return Math.round(expDelta);
+    return BigNumber.from(Math.round(expDelta));
 }
 
 export function calculateExp(current: number, amount: number, days: number): number {
@@ -118,6 +118,5 @@ export async function prepareAccountScores():  Promise<AccountReputation[]> {
     const positionsData: any = await getPositionsData();
     const accountsPositions: AccountsPositions = processPositions(positionsData);
     const accountScores : AccountReputation[] = calculateScores(accountsPositions);
-    await writeFile("./data.json", JSON.stringify(accountScores))
     return accountScores;
 };

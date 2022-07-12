@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import * as contractAbi from  "../abis/ReputationMerkleTree.json";
 import { ContractData } from "../common/types";
 
+
 config();
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
@@ -14,8 +15,7 @@ const RINKEBY_CONTRACT_ADDRESS = process.env.RINKEBY_CONTRACT_ADDRESS || "";
 export async function deployMerkleRoot(_root: string, _cid: string) : Promise<void> {
     const { contract } : ContractData = getContractData();
     await contract.setMerkleRoot(_root, _cid);
-    await logMerkleRoot();
-}
+    await logMerkleRoot();}
 
 export async function logMerkleRoot() : Promise<void> {
     const { contract } = getContractData()
@@ -32,5 +32,5 @@ export function getContractData() : ContractData {
         contract: rmt,
         signer
     }
-}
 
+}

@@ -1,5 +1,5 @@
 
-import { Contract, Wallet } from "ethers"
+import { BigNumber, Contract, Wallet } from "ethers"
 
 export type Position = {
     id: string
@@ -30,7 +30,7 @@ export type AccountsPositions = {
 export type AccountReputation = {
     index: number
     account: string
-    experience: number
+    experience: BigNumber
 }
 
 export type Proof = {

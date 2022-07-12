@@ -3,7 +3,7 @@ import { writeFile } from "fs/promises";
 import { CIDString, getFilesFromPath, Web3Storage } from "web3.storage";
 config()
 
-export async function uploadToIPFS(path: string) : Promise<string> {
+export async function uploadToIPFS() : Promise<string> {
     const storageToken = process.env.STORAGE_TOKEN;
     
     if(!storageToken) {
@@ -11,13 +11,10 @@ export async function uploadToIPFS(path: string) : Promise<string> {
     }
 
     const client = new Web3Storage({ endpoint: new URL('https://api.web3.storage'), token: storageToken });
-    const files = await getFilesFromPath(path);
+    const files = await getFilesFromPath("./data/merkle.json");
 
     const cid : CIDString= await client.put(files);
     
     await writeFile("./data/ipfsPath.txt", cid)
     return cid;
 }
-
-
-uploadToIPFS("./data/merkle.json")

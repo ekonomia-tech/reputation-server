@@ -7,7 +7,7 @@ export const hash = (leaf: AccountReputation): string => {
     return utils.keccak256(
         utils.defaultAbiCoder.encode(
             ["uint256", "address", "uint256"],
-            [BigNumber.from(leaf.index), leaf.account, BigNumber.from(leaf.experience)]
+            [BigNumber.from(leaf.index), leaf.account, leaf.experience]
         )
     );
 };
@@ -67,7 +67,7 @@ const computeRoot = (balances: AccountReputation[]) : WholeTree => {
   return {root: hashedLeaves[hashedLeaves.length - 1], wholeTree};
 };
 
-const computeAllProofs = async () => {
+export const computeAllProofs = async () : Promise<string>=> {
   const data: AccountReputation[] = await prepareAccountScores();
   const leaves = data
   let proofs: Proof[] = [];
@@ -81,6 +81,5 @@ const computeAllProofs = async () => {
     proofs
   };
   await writeFile("./data/merkle.json", JSON.stringify(merkleData))
+  return merkleData.root
 };
-
-computeAllProofs();
